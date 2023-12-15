@@ -1,0 +1,34 @@
+<div class="card border-primary" style="width: 300px;">
+  <div class="card-header text-center">{{title}}</div>
+  <div class="card-body">
+      <form method="post">
+          <!-- Email input-->
+          <div class="form-outline mb-4">
+            <label>Usuario</label>
+              <input type="text" [(ngModel)]="usuario.username" name="username" class="form-control" />
+
+          </div>
+          <!-- Password input-->
+          <div class="form-outline mb-4">
+              <label>Password</label>
+              <input type="text" [(ngModel)]="usuario.password" name="password" class="form-control" />
+
+          </div>
+           <!-- 2 Column grig layout for inline styling -->
+           <div class="row mb-4">
+              <div class="col d-flex justify-content-center">
+                  <!--Checkbook-->
+          </div>
+          <!--Submit button-->
+          <button type="submit" class="btn-primary btn-block mb-4" (click)="login()">Iniciar Sesion</button>
+
+          <!--Registrar buttons-->
+          <div class="text-center">
+              <p>Not a member? <a href="#!">Register</a></p>
+          </div>
+
+
+
+        </div>
+      </form>
+</div>

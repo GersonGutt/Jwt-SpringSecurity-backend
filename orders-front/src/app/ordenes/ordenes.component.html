@@ -1,0 +1,143 @@
+<div class="container">
+    <div class="card">
+        <p-toast></p-toast>
+        <p-toolbar styleClass="mb-4 gap-2">
+            <ng-template pTemplate="center">
+                <h4>Gestion de Ordenes</h4>
+                <table class="table-responsive">
+                    <tr >
+                        <td>
+                            <div class="flex align-items-center">
+                                <p-radioButton name="rbOption" value="Recibidas" [(ngModel)]="optionRadioButton" inputId="rb1" (onClick)="getAllRecibidas()"></p-radioButton>
+                                <label for="rb1" class="ml-2"> Recibidas </label> &nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex align-items-center">
+                                <p-radioButton name="rbOption" value="Despachadas" [(ngModel)]="optionRadioButton" inputId="rb2" (onClick)="getAllDespachadas()"></p-radioButton>
+                                <label for="rb2" class="ml-2"> Despachadas </label> &nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex align-items-center">
+                                <p-radioButton name="rbOption" value="Anuladas" [(ngModel)]="optionRadioButton" inputId="rb3" (onClick)="getAllAnuladas()"></p-radioButton>
+                                <label for="rb3" class="ml-2"> Anuladas </label> &nbsp;
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </ng-template>
+
+        </p-toolbar>
+
+        <p-table
+            #dt
+            [value]="ordenes"
+            [rows]="10"
+            [paginator]="true"
+            [globalFilterFields]="['correlativo', 'fechaOrden', 'fechaDespacho', 'usuario.nombre']"
+            [tableStyle]="{ 'min-width': '75rem' }"
+            [rowHover]="true"
+            dataKey="id"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+            [showCurrentPageReport]="true"
+        >
+            <ng-template pTemplate="caption">
+                <div class="flex align-items-center justify-content-between">
+                    <span class="p-input-icon-left">
+                        <i class="pi pi-search"></i>
+                        <input pInputText type="text" (input)="dt.filterGlobal(getEventValue($event), 'contains')" placeholder="Search..." />
+                    </span>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="correlativo">Numero Orden<p-sortIcon field="correlativo"></p-sortIcon></th>
+                    <th pSortableColumn="fechaOrden">Fecha Orden<p-sortIcon field="fechaOrden"></p-sortIcon></th>
+                    <th pSortableColumn="fechaDespacho">Fecha Despacho<p-sortIcon field="fechaDespacho"></p-sortIcon></th>
+                    <th pSortableColumn="monto">Total Orden<p-sortIcon field="monto"></p-sortIcon></th>
+                    <th pSortableColumn="cliente">Cliente<p-sortIcon field="cliente"></p-sortIcon></th>
+                    <th>Acciones</th>
+
+
+                    <th></th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-orden>
+                <tr>
+                    <td>{{ orden.correlativo }}</td>
+                    <td>{{ orden.fechaOrden | date: "dd/MM/yyyy"}}</td>
+                    <td>{{ orden.fechaDespacho | date: "dd/MM/yyyy"}}</td>
+                    <td>{{ orden.monto | currency: 'USD' }}</td>
+                    <td>{{ orden.usuario.nombre }}</td>
+                    <td>
+                        <button pButton pRipple icon="pi pi-search" label="Ver Detalle" class="p-button-info p-button-sm mb-1" (click)="verDetalle(orden)"></button> <br>
+                        <button pButton pRipple icon="pi pi-arrow-up.right" label="Despachar" class="p-button-succes p-button-sm ml-1" (click)="changeState(estado='D',orden)" *ngIf="orden.estado=='R'"></button>
+                        <button pButton pRipple icon="pi pi-times" label="Anular" class="p-button-danger p-button-sm mr-1" (click)="changeState(estado='A',orden)" *ngIf="orden.estado=='R'"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="summary">
+                <div class="flex align-items-center justify-content-between">Total de Ordenes: {{ ordenes ? ordenes.length : 0 }}</div>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <p-dialog [(visible)]="detalleOrdenDialog" [style]="{ width: '550px' }" header="{{title}}" [modal]="true" styleClass="p-fluid">
+        <ng-template pTemplate="content">
+            <div class="field">
+                <label for="cliente"><b>Cliente: </b>{{orden.usuario}}</label>
+            </div>
+            <div class="formgrid grid row">
+                <div class="field col-6">
+                    <label for="fechaOrden"><b>Fecha Orden: </b>{{orden.fechaOrden | date: "EEEE dd, MM, yyyy"}}</label>
+                </div>
+                <div class="field col-6">
+                    <label for="fechaDespacho"><b>Fecha Despacho: </b>{{orden.fechaDespacho | date: "EEEE dd, MM, yyyy"}}</label>
+                </div>
+
+            </div>
+            <div class="formgrid grid row">
+                <div class="field col-6">
+                    <label for="estado"><b>Estado: </b>{{orden.estado =='R' ? 'Recibida' : (orden.estado == 'D' ? 'Despachadas' : 'Anulada')}}</label>
+                </div>
+                <div class="field col-6">
+                    <label for="correlativo"><b>Orden No: </b>{{orden.correlativo | date: "EEEE dd, MM, yyyy"}}</label>
+                </div>
+            </div>
+            <div class="formgrid grid">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th>SubTotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of orden.detalleOrden">
+                            <td>{{item.producto.nombre}}, {{item.producto.descripcion}}</td>
+                            <td>{{item.producto.precio | currency: 'USD'}}</td>
+                            <td>{{item.cantidad}}</td>
+                            <td>{{item.producto.precio * item.cantidad | currency: 'USD'}}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><b>Total de la Orden</b></td>
+                            <td>{{orden.monto | currency: 'USD'}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+        </ng-template>
+
+        <ng-template pTemplate="footer">
+            <button pButton pRipple label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+
+        </ng-template>
+    </p-dialog>
+
+    <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+</div>

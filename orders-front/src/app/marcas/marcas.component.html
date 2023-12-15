@@ -1,0 +1,70 @@
+<div class="container">
+    <div class="card">
+        <p-toast></p-toast>
+        <p-toolbar styleClass="mb-4 gap-2">
+            <ng-template pTemplate="left">
+                <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+            </ng-template>
+        </p-toolbar>
+
+        <p-table
+            #dt
+            [value]="marcas"
+            [rows]="10"
+            [paginator]="true"
+            [globalFilterFields]="['nombre']"
+            [tableStyle]="{ 'min-width': '75rem' }"
+            [(selection)]="selectedMarcas"
+            [rowHover]="true"
+            dataKey="id"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+            [showCurrentPageReport]="true">
+        >
+            <ng-template pTemplate="caption">
+                <div class="flex align-items-center justify-content-between">
+                    <h5 class="m-0">CRUD de Marcas</h5>
+                    <span class="p-input-icon-left">
+                        <i class="pi pi-search"></i>
+                        <input pInputText type="text" (input)="dt.filterGlobal(getEventValue($event), 'contains')" placeholder="Search..." />
+                    </span>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="nombre" style="min-width:15rem">Marca <p-sortIcon field="nombre"></p-sortIcon></th>
+                    <th>Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-marca>
+                <tr>
+                    <td>{{ marca.nombre }}</td>
+                    <td>
+                        <button pButton pRipple label="editar" icon="pi pi-times" class="p-button-success mr-2" (click)="editMarca(marca)"></button>
+                        <button pButton pRipple label="eliminar" icon="pi pi-check" class="p-button-warning" (click)="deleteMarca(marca)"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="summary">
+                <div class="flex align-items-center justify-content-between">Existen  {{ marcas ? marcas.length : 0 }} marcas.</div>
+            </ng-template>
+        </p-table>
+    </div>
+    <p-dialog [(visible)]="marDialog" [style]="{ width: '450px' }" header="{{title}}" [modal]="true" styleClass="p-fluid">
+        <ng-template pTemplate="content">
+            <div class="field">
+                <label for="name">Nombre</label>
+                <input type="text" pInputText id="nombre" [(ngModel)]="marca.nombre" required autofocus />
+                <small class="p-error" *ngIf="submitted && !marca.nombre">Nombre es requerido.</small>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="footer">
+            <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+            <button pButton pRipple label="Guardar" icon="pi pi-check" class="p-button-text"*ngIf="!marca.id else elseBlock" (click)="create()"></button>
+            <ng-template #elseBlock>
+                <button pButton pRipple label="Actualizar" icon="pi pi-check" class="p-button-text" (click)="update()"></button>
+            </ng-template>
+        </ng-template>
+    </p-dialog>
+
+    <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+</div>

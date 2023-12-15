@@ -1,0 +1,139 @@
+<div class="container">
+
+  <div class="card">
+      <p-toast></p-toast>
+      <p-dataView #dv [value]="products" [paginator]="true" [rows]="5" filterBy="nombre">
+          <ng-template pTemplate="header">
+              <div class="flex justify-content-end">
+                  <span class="p-input-icon-left mb-2 md: mb-0">
+                      <i class="pi pi-search"></i>
+                      <input type="search" pInputText placeholder="Buscar por Nombre"  (input)="dv.filter(getEventValue($event))">
+                  </span>
+                  <p-button label="Ver Orden" styleClass="p-button-text" (onClick)="verDetalleOrden()" *ngIf="orden.detalleOrden !=null"></p-button>
+                  <p-dataViewLayoutOptions></p-dataViewLayoutOptions>
+              </div>
+          </ng-template>
+          <ng-template let-product pTemplate="listItem">
+              <div class="col-12">
+                  <div class="flex flex-column xl:flex-row xl:align-items-center p-4 gap-4 grid">
+
+                      <img class="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round" [src]="'assets/images/productos/' + product.imagen" [alt]="product.nombre" height="200px" *ngIf="product.imagen != null"/>
+                      <img class="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round" src="assets/images/productos/undefined.jpg" alt="no-image" *ngIf="product.imagen == null || product.imagen== ''"/>
+                      <div class="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
+                          <div class="flex flex-column align-items-center sm:align-items-start gap-3">
+                              <div class="text-2xl font-bold text-900">{{ product.nombre }}, {{product.descripcion}}, marca: {{product.marca.nombre}}</div>
+                             <!-- <p-rating [ngModel]="product.rating" [readonly]="true" [cancel]="false"></p-rating>-->
+                              <div class="flex align-items-center gap-3">
+                                  <span class="flex align-items-center gap-2">
+                                      <i class="pi pi-tag"></i>
+                                      <span class="font-semibold">{{ product.categoria.nombre }}</span>
+                                  </span>
+                                  <span class="flex align-items-center gap-2">
+                                    <i class="pi pi-amazon"></i>
+                                    <span class="font-semibold">existencias: {{ product.existencia }}</span>
+                                </span>
+
+                                 <!-- <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)"></p-tag>-->
+                              </div>
+                          </div>
+                          <div class="flex sm:flex-column align-items-center sm:align-items-end gap-3 sm:gap-2">
+                              <span class="text-2xl font-semibold">{{ product.precio | currency: 'USD' }}</span>
+                              <label for="cantidad">Cantidad</label>
+                              <p-inputNumber #cantidad mode="decimal" [showButtons]="true"
+                              incrementButtonClass="p-button-secondary" incrementButtonIcon="pi pi-plus"
+                              decrementButtonIcon="pi pi-minus" [min]="1"></p-inputNumber>
+                              <button (click)="addToOrder(product,cantidad.value,$event)" pButton icon="pi pi-shopping-cart" class="md:align-self-end mb-2 p-button-rounded" [disabled]="product.existencia === 0"></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </ng-template>
+          <ng-template let-product pTemplate="gridItem">
+              <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
+                  <div class="p-4 border-1 surface-border surface-card border-round">
+                      <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+                          <span class="flex align-items-center gap-2">
+                              <i class="pi pi-tag"></i>
+                              <span class="font-semibold">{{ product.categoria.nombre }}</span>
+                          </span>
+                          <span class="flex align-items-center gap-2">
+                            <i class="pi pi-amazon"></i>
+                            <span class="font-semibold">existencias: {{ product.existencia }}</span>
+                        </span>
+                          <!--<p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)"></p-tag>-->
+                      </div>
+                      <div class="flex flex-column align-items-center gap-3 py-5">
+                          <img class="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round" [src]="'assets/images/productos/' + product.imagen" [alt]="product.nombre"*ngIf="product.imagen != null"/>
+                          <img class="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round" src="assets/images/productos/undefined.jpg" alt="no-image" *ngIf="product.imagen == null || product.imagen== ''"/>
+                          <div class="text-2xl font-bold">{{ product.nombre }}, {{product.descripcion}}, marca: {{product.marca.nombre}}</div>
+                        <!--  <p-rating [ngModel]="product.rating" [readonly]="true" [cancel]="false"></p-rating>-->
+                      </div>
+                      <div class="flex align-items-center justify-content-between">
+                          <span class="text-2xl font-semibold">{{ product.precio | currency:'USD' }}</span>
+                          <button pButton icon="pi pi-shopping-cart" class="p-button-rounded" [disabled]="product.existencia === 0"></button>
+                      </div>
+                  </div>
+              </div>
+          </ng-template>
+      </p-dataView>
+  </div>
+
+  <p-dialog [(visible)]="detalleOrdenDialog" [style]="{ width: '550px' }" header="{{title}}" [modal]="true" styleClass="p-fluid">
+      <ng-template pTemplate="content">
+          <div class="field">
+              <label for="cliente"><b>Cliente: </b>{{orden.usuario.nombre}}</label>
+          </div>
+          <div class="formgrid grid row">
+              <div class="field col-6">
+                  <label for="fechaOrden"><b>Fecha Orden: </b>{{orden.fechaOrden | date: "EEEE dd, MM, yyyy"}}</label>
+              </div>
+              <div class="field col-6">
+                  <label for="fechaDespacho"><b>Fecha Despacho: </b>{{orden.fechaDespacho | date: "EEEE dd, MM, yyyy"}}</label>
+              </div>
+
+          </div>
+          <div class="formgrid grid row">
+              <div class="field col-6">
+                  <label for="estado"><b>Estado: </b>{{orden.estado =='R' ? 'Recibida' : (orden.estado == 'D' ? 'Despachada' :(orden.estado== 'A' ? 'Anulada' : 'En Proceso'))}}</label>
+              </div>
+              <div class="field col-6">
+                  <label for="correlativo"><b>Orden No: </b>{{orden.correlativo}}</label>
+              </div>
+          </div>
+          <div class="formgrid grid">
+              <table class="table table-bordered">
+                  <thead>
+                      <tr>
+                          <th>Producto</th>
+                          <th>Precio</th>
+                          <th>Cantidad</th>
+                          <th>SubTotal</th>
+                          <th></th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr *ngFor="let item of orden.detalleOrden">
+                          <td>{{item.producto.nombre}}, {{item.producto.descripcion}}</td>
+                          <td>{{item.producto.precio | currency: 'USD'}}</td>
+                          <td class="text-center">{{item.cantidad}}</td>
+                          <td>{{item.producto.precio * item.cantidad | currency: 'USD'}}</td>
+                          <td>
+                              <p-button icon="pi pi-times" styleClass="p-button-rounded-danger p-button-text" (onClick)="quitarItem(item)"></p-button>
+                          </td>
+                      </tr>
+                      <tr>
+                          <td colspan="3"><b>Total de la Orden</b></td>
+                          <td>{{orden.monto | currency: 'USD'}}</td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+      </ng-template>
+      <ng-template pTemplate="footer">
+          <button pButton pRipple label="Confirmar Orden" icon="pi pi-times" class="p-button-text" (click)="saveOrden()"></button>
+          <button pButton pRipple label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+      </ng-template>
+  </p-dialog>
+
+  <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+  </div>
